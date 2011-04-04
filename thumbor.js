@@ -1,7 +1,9 @@
 var crypto = require('crypto');
 var exec = require('child_process').exec;
+var url = require('./url');
 
 var CryptoUrl = exports.CryptoUrl = function(options){
+    this.properties = {};
     this.setOptions(options);
 }
 
@@ -12,11 +14,11 @@ var prototype = {
         }
     },
     set: function(name, value){
-        this['_'+name] = value;
+        this.properties[name] = value;
         return this;
     },
     get: function(name){
-        return this['_'+name];
+        return this.properties[name];
     },
     setOrGet: function(name, value){
         if (value == null){
@@ -25,7 +27,7 @@ var prototype = {
             return this.set(name, value);
         }
     },
-    keyLength: 24,
+    keyLength: 16,
     key: function(value){
         if (value == null){
             return this.get('key');
@@ -33,65 +35,35 @@ var prototype = {
         while (value.length < this.keyLength){
             value += value;
         }
-        //this.cipher = crypto.createCipher('des3', value);
         return this.set('key', value.slice(0, this.keyLength));
     },
-    _pad: function(){
-
+    _padKey: function(key){
+        var diff = key.length % this.keyLength;
+        for (var i = diff; i--;){
+            key += '{';
+        }
+        return key;
+    },
+    buildUrl: function(){
+        return url.urlFor(this.properties);
     },
     generate: function(callback){
-        if (!this.imageUrl()){
-            throw new Error("The image cannot be null or empty.");
-        }
-        if ((/^\//).test(this.imageUrl())){
-            this.imageUrl(this.imageUrl().slice(1));
-        }
+        var url = this.buildUrl();
 
-        var urlParts = [];
-
-        if (this.meta()){
-            urlParts.push('meta');
-        }
-
-        var crop = this.cropLeft() || this.cropTop() || this.cropRight() || this.cropBottom();
-        if (crop){
-            urlParts.push(this.cropLeft() +'x'+ this.cropTop() +':'+ this.cropRight() +'x'+ this.cropBottom());
-        }
-        if (this.width() && this.height()){
-            urlParts.push(this.width() + 'x' + this.height());
-        } else if (this.width()){
-            urlParts.push(this.width() + 'x0');
-        } else if (this.height()){
-            urlParts.push('0x' + this.height());
-        }
-
-        if (this.halign() && this.halign() != 'center'){
-            urlParts.push(this.halign());
-        }
-        if (this.valign() && this.valign() != 'middle'){
-            urlParts.push(this.valign());
-        }
-        if (this.smart()){
-            urlParts.push('smart');
-        }
-
-        var imageHash = crypto.createHash('md5').update(this.imageUrl()).digest('hex');
-        urlParts.push(imageHash);
-
-        var url = urlParts.join('/');
-    
         var command = [
             "import base64",
             "import sys",
             "from Crypto.Cipher import *",
-            "pad = lambda s: s + (16 - len(s) % 16) * '{'",
             "cypher = AES.new('"+ this.key() +"')",
-            "sys.stdout.write(base64.urlsafe_b64encode(cypher.encrypt(pad('"+ url +"'))))"
+            "sys.stdout.write(base64.urlsafe_b64encode(cypher.encrypt('"+ this._padKey(url) +"')))"
         ];
+
+        //var cipher = crypto.createCipher('aes-128-ecb', this.key());
+        //var enc = cipher.update(this._padKey(url), 'binary', 'base64');
+
         exec('python -c "' + command.join(';') + '"', function(error, stdout, stderr){
             callback.call(this, error, '/' + stdout.trim() + '/' + this.imageUrl());
         }.bind(this));
-
     }
 };
 

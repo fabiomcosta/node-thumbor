@@ -10,13 +10,11 @@ var crypto = require('crypto');
 function calculateDimensions(urlParts, options) {
     var width = options.width || 0;
     var height = options.height || 0;
-    var hasWidth = width;
-    var hasHeight = height;
 
     var flip = options.flip;
     var flop = options.flop;
 
-    if (!hasWidth && !hasHeight) {
+    if (!width && !height) {
         if (flip) {
             width = '-0'
         }
