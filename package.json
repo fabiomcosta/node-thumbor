@@ -1,0 +1,24 @@
+{
+    "name":         "node-thumbor",
+    "version":      "0.1.0",
+    "author":       "Fábio Miranda Costa",
+    "description":  "An encrypted url generator for the thumbor server using nodejs lib.",
+    "keywords":     ["thumbor", "thumbnail"],
+    "homepage":     "http://github.com/fabiomcosta/node-thumbor",
+    "engines":      { "node": ">=0.4.0" },
+    "devDependencies": {
+        "vows": ">=0.5.8"
+    },
+    "scripts": {
+        "test":         "make test"
+    },
+    "repository": {
+        "type":         "git",
+        "url":          "http://github.com/fabiomcosta/node-thumbor.git"
+    },
+    "bugs": {
+        "mail":         "",
+        "web":          "http://github.com/fabiomcosta/node-thumbor/issues"
+    }
+}
+
