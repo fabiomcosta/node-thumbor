@@ -20,25 +20,41 @@ vows.describe('Thumbor url generator').addBatch({
             assert.length(topic.properties.key, 16);
         }
     },
-    'build url': {
-        topic: function(){
-            var cryptoUrl = new thumbor.CryptoUrl({key: key});
-            cryptoUrl.width(300).height(200).imageUrl('my.server.com/some/path/to/image.jpg');
-            return cryptoUrl.buildUrl();
-        },
-        'checks the built url': function(topic){
-            assert.equal(topic, '300x200/84996242f65a4d864aceb125e1c4c5ba');
-        }
-    },
-    'usage': {
-        topic: function(){
-            var cryptoUrl = new thumbor.CryptoUrl({key: key});
-            cryptoUrl.width(300).height(200).imageUrl('my.server.com/some/path/to/image.jpg');
-            cryptoUrl.generate(this.callback);
-        },
-        'get url': function(error, topic){
-            assert.ok(topic);
-            assert.equal(topic, '/l42l54VqaV_J-EcB5quNMP6CnsN9BX7htrh-QbPuDv0C7adUXX7LTo6DHm_woJtZ/my.server.com/some/path/to/image.jpg');
+    //'build url': {
+        //topic: function(){
+            //var cryptoUrl = new thumbor.CryptoUrl({key: key});
+            //cryptoUrl.width(300).height(200).imageUrl('my.server.com/some/path/to/image.jpg');
+            //return cryptoUrl.buildUrl();
+        //},
+        //'checks the built url': function(topic){
+            //assert.equal(topic, '300x200/84996242f65a4d864aceb125e1c4c5ba');
+        //}
+    //},
+    //'usage': {
+        //topic: function(){
+            //var cryptoUrl = new thumbor.CryptoUrl({key: key});
+            //cryptoUrl.width(300).height(200).imageUrl('my.server.com/some/path/to/image.jpg');
+            //cryptoUrl.generate(this.callback);
+        //},
+        //'get url': function(error, topic){
+            //assert.ok(topic);
+            //assert.equal(topic, '/l42l54VqaV_J-EcB5quNMP6CnsN9BX7htrh-QbPuDv0C7adUXX7LTo6DHm_woJtZ/my.server.com/some/path/to/image.jpg');
+        //}
+    //}
+    'encryption': {
+        'given a specific key and string, we get an encrypted string': {
+            topic: function(){
+                var cryptoUrl = new thumbor.CryptoUrl({key: 'my-security-key'});
+                cryptoUrl.width(300).height(200).imageUrl('my.server.com/some/path/to/image.jpg');
+                return cryptoUrl.toUrl();
+            },
+
+            'should return encrypted url': function(topic) {
+                var expectedUrl = '/l42l54VqaV_J-EcB5quNMP6CnsN9BX7htrh-' + 
+                                  'QbPuDv0C7adUXX7LTo6DHm_woJtZ/my.server.com/some/path/to/image.jpg'
+
+                assert.equal(topic, expectedUrl);
+            }
         }
     }
 }).export(module);

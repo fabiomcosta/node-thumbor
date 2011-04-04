@@ -1,6 +1,7 @@
 var crypto = require('crypto');
 var exec = require('child_process').exec;
 var url = require('./url');
+var base64 = require('base64').encode;
 
 var CryptoUrl = exports.CryptoUrl = function(options){
     this.properties = {};
@@ -47,23 +48,39 @@ var prototype = {
     buildUrl: function(){
         return url.urlFor(this.properties);
     },
-    generate: function(callback){
+    toUrl: function() {
         var url = this.buildUrl();
+        console.log('url', url);
+        console.log('key', this.key());
 
-        var command = [
-            "import base64",
-            "import sys",
-            "from Crypto.Cipher import *",
-            "cypher = AES.new('"+ this.key() +"')",
-            "sys.stdout.write(base64.urlsafe_b64encode(cypher.encrypt('"+ this._padKey(url) +"')))"
-        ];
+        var cipher = crypto.createCipher('AES-128-ECB', this.key());
+
+        var padded = this._padKey(url);
+        console.log('padded', padded);
+
+        encrypted = cipher.update(url);
+        console.log('encrypted', encrypted);
+
+        based = new Buffer(encrypted).toString('base64');
+        console.log(based);
+
+        return '/' + based + '/' + this.imageUrl();
+    },
+    generate: function(callback){
+        //var command = [
+            //"import base64",
+            //"import sys",
+            //"from Crypto.Cipher import *",
+            //"cypher = AES.new('"+ this.key() +"')",
+            //"sys.stdout.write(base64.urlsafe_b64encode(cypher.encrypt('"+ this._padKey(url) +"')))"
+        //];
 
         //var cipher = crypto.createCipher('aes-128-ecb', this.key());
         //var enc = cipher.update(this._padKey(url), 'binary', 'base64');
 
-        exec('python -c "' + command.join(';') + '"', function(error, stdout, stderr){
-            callback.call(this, error, '/' + stdout.trim() + '/' + this.imageUrl());
-        }.bind(this));
+        //exec('python -c "' + command.join(';') + '"', function(error, stdout, stderr){
+           //callback.call(this, error, '/' + stdout.trim() + '/' + this.imageUrl());
+        //}.bind(this));
     }
 };
 
